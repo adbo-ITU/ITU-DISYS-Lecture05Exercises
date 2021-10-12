@@ -26,7 +26,7 @@ func main() {
 	logOutputs := io.MultiWriter(os.Stdout, logFile)
 	log.SetOutput(logOutputs)
 
-	addresses := []string{"127.0.0.1:8080", "127.0.0.1:8081"}
+	addresses := []string{"10.26.18.24:8080", "127.0.0.1:8080", "10.26.31.80:8080"}
 	clients := make([]pb.TimeClient, len(addresses))
 
 	for i, address := range addresses {
@@ -57,8 +57,12 @@ func connectToServer(address string) (*grpc.ClientConn, error) {
 
 func fetchTimeWithLogger(client pb.TimeClient, logTag string) (*pb.Time, error) {
 	defer wg.Done()
+	start := time.Now()
 	log.Printf("(%s) Requesting Now...\n", logTag)
 	currentTime, err := fetchTime(client)
+	t := time.Now()
+	elapsed := t.Sub(start)
+	log.Printf("(%s) Round trip: %s", logTag, elapsed)
 	if err != nil {
 		log.Fatalf("(%s) Failed when requesting Now: %v\n", logTag, err)
 		return nil, err
