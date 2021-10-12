@@ -60,14 +60,29 @@ func fetchTimeWithLogger(client pb.TimeClient, logTag string) (*pb.Time, error) 
 	start := time.Now()
 	log.Printf("(%s) Requesting Now...\n", logTag)
 	currentTime, err := fetchTime(client)
+
 	t := time.Now()
 	elapsed := t.Sub(start)
-	log.Printf("(%s) Round trip: %s", logTag, elapsed)
+
 	if err != nil {
 		log.Fatalf("(%s) Failed when requesting Now: %v\n", logTag, err)
 		return nil, err
 	}
-	log.Printf("(%s) Received Now response: %s", logTag, currentTime)
+
+	parsedTime, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", currentTime.Time)
+	if err != nil {
+		log.Fatalf("(%s) Failed to parse time string: %v\n", logTag, err)
+		return nil, err
+	}
+	delta := parsedTime.Sub(start)
+
+	log.Printf(`(%s) Received Now response:
+  - Address: %s
+  - Round trip: %s
+  - Returned time: %s
+  - Time delta: %s
+`,
+		logTag, logTag, elapsed, currentTime, delta)
 	return currentTime, nil
 }
 
