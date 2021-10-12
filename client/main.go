@@ -18,7 +18,7 @@ var wg sync.WaitGroup
 
 func main() {
 	logPath := fmt.Sprintf("client_%d.log", 0) // time.Now().Unix())
-	logFile, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE, 0666)
+	logFile, err := os.OpenFile(logPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
@@ -61,8 +61,8 @@ func fetchTimeWithLogger(client pb.TimeClient, logTag string) (*pb.Time, error) 
 	log.Printf("(%s) Requesting Now...\n", logTag)
 	currentTime, err := fetchTime(client)
 
-	t := time.Now()
-	elapsed := t.Sub(start)
+	end := time.Now()
+	elapsed := end.Sub(start)
 
 	if err != nil {
 		log.Fatalf("(%s) Failed when requesting Now: %v\n", logTag, err)
@@ -76,13 +76,17 @@ func fetchTimeWithLogger(client pb.TimeClient, logTag string) (*pb.Time, error) 
 	}
 	delta := parsedTime.Sub(start)
 
+	cristian := parsedTime.Add(end.Sub(start) / 2)
+
 	log.Printf(`(%s) Received Now response:
   - Address: %s
+  - Start time: %s
   - Round trip: %s
   - Returned time: %s
   - Time delta: %s
+  - Synchronized time (Cristian): %s
 `,
-		logTag, logTag, elapsed, currentTime, delta)
+		logTag, logTag, start, elapsed, parsedTime, delta, cristian)
 	return currentTime, nil
 }
 
